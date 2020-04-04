@@ -1,5 +1,6 @@
 #include <Wire.h>
 #include <Conceptinetics.h>
+#include <Smoothed.h>
 
 #define DEBUG 1
 
@@ -27,28 +28,6 @@ byte r = 0;
 byte g = 0;
 byte b = 0;
 
-byte digits[10] = {
-  0b01111110, // 0
-  0b01010000, // 1
-  0b00011111, // 2
-  0b01011101, // 3
-  0b01110001, // 4
-  0b01101101, // 5
-  0b01100111, // 6
-  0b01011000, // 7
-  0b01111111, // 8
-  0b01111001, // 9
-};
-
-#define SR_LATCH_PIN 5
-#define SR_CLOCK_PIN 3
-#define SR_DATA_PIN 6
-
-void displayMode7Segment(int mode) {
-  digitalWrite(SR_LATCH_PIN, LOW);
-  shiftOut(SR_DATA_PIN, SR_CLOCK_PIN, MSBFIRST, digits[mode]);
-  digitalWrite(SR_LATCH_PIN, HIGH);
-}
 
 void requestEvent() {
   byte message[5] = {mode, t, r, g, b};  
@@ -59,7 +38,11 @@ void requestEvent() {
 #define DMX_SLAVE_CHANNELS   20
 DMX_Slave dmx_slave ( DMX_SLAVE_CHANNELS );
 
+Smoothed <int> pot;
+
 void setup() {
+  pot.begin(SMOOTHED_AVERAGE, 30);
+  
   // dmx
   dmx_slave.enable();  
   dmx_slave.setStartAddress(1);
@@ -69,9 +52,7 @@ void setup() {
   Wire.onRequest(requestEvent); // register event
 
   #ifdef DEBUG
-  pinMode(SR_LATCH_PIN, OUTPUT);
-  pinMode(SR_CLOCK_PIN, OUTPUT);
-  pinMode(SR_DATA_PIN, OUTPUT);
+  setup7Segment();
   #endif
 }
 
@@ -86,11 +67,15 @@ void loop() {
   r = dmx_slave.getChannelValue (11);
   g = dmx_slave.getChannelValue (12);
   b = dmx_slave.getChannelValue (13);
-  t = dmx_slave.getChannelValue (10);
+//  t = dmx_slave.getChannelValue (10);
   mode = dmx_slave.getChannelValue(1);
 
+  // Scale to 0-256 range from 0-1024
+  int val = map(analogRead(A3), 0, 1023, 0, 255);
+  pot.add(val);
+  t = pot.get();
+
   #ifdef DEBUG
-  displayMode7Segment(mode);  
-  delay(1000);
+  display7Segment(mode);  
   #endif
 }
