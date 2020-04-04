@@ -79,21 +79,40 @@ void setupLEDs() {
 }
 
 void updateLEDs(LEDControl* control) {
-  switch (control->mode) {
-    case mPLAIN:        plain(control); break;
-    case mPUMP:         pump(control); break;
-    case mPUMP_REVERSE: pump_reverse(control); break;
-    case mCHASE:        chase(control); break;
-    case mCHASE_RGB:    chase_rgb(control); break;
-  }
+//  switch (control->mode) {
+//    case mPLAIN:          plain(control); break;
+//    case mPUMP:           pump(control); break;
+//    case mPUMP_REVERSE:   pump_reverse(control); break;
+//    case mCHASE:          chase_horizontal(control); break;
+//    case mCHASE_VERTICAL: chase_vertical(control); break;
+//    case mCHASE_RGB:      chase_rgb(control); break;
+//    case mRAINBOW_H:      rainbow_h(control); break;
+//  }
+
+  chase_vertical(control);
+
   FastLED.show();
 }
 
-void chase(LEDControl* control) {
-  for(int i = 0; i < NUM_LEDS; i++) {  
-    byte x = control->t;
-    x = x - ((i % SEGMENT_LENGTH) * NUM_SEGMENTS);
-    leds[i].setRGB(x - i, x - i, x - i);
+void chase_horizontal(LEDControl* control) {
+  // The column that should be at full strength
+  byte fsCol = map(control->t, 0, 255, 0, NUM_SEGMENTS);
+  
+  for(int i = 0; i < NUM_LEDS; i++) {
+    byte thisCol = i / SEGMENT_LENGTH;
+    byte x = fsCol == thisCol ? 255 : 0;
+    leds[i].setRGB(x, x, x);
+  }
+}
+
+void chase_vertical(LEDControl* control) {
+  // The column that should be at full strength
+  byte fsRow = map(control->t, 0, 255, 0, SEGMENT_LENGTH);
+  
+  for(int i = 0; i < NUM_LEDS; i++) {
+    byte thisRow = i % SEGMENT_LENGTH;
+    byte x = fsRow == thisRow ? 255 : 0;
+    leds[ledTable[i]].setRGB(x, x, x);
   }
 }
 
@@ -106,9 +125,13 @@ void chase_rgb(LEDControl* control) {
   }
 }
 
+void rainbow_h(LEDControl* control) {
+    for(int i = 0; i < NUM_LEDS; i++) {  
+    }  
+}
+
 void pumpSingleRandom(LEDControl* control) {
     for(int i = 0; i < NUM_LEDS; i++) {  
-
     }
 }
 
