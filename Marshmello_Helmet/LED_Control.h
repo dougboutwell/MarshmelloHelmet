@@ -8,11 +8,6 @@
 
 #include <Arduino.h>
 
-#define LED_DATA_PIN 9  // Pin we're using for WS2812 communication
-#define NUM_LEDS 216    // Total number of LEDs in the strip / array
-#define NUM_SEGMENTS 27 // Number of segments to split NUM_LEDS into
-                        // when it matters, i.e. for chase effects
-
 // Structure for communicating between DMX slave and LED controller.
 typedef struct _LEDControl {
   byte mode;   // Program mode to use

@@ -30,6 +30,12 @@
 #include "LED_Programs.h"
 #include "LED_Control.h"
 
+#define LED_DATA_PIN 9  // Pin we're using for WS2812 communication
+#define NUM_LEDS 216    // Total number of LEDs in the strip / array
+#define NUM_SEGMENTS 27 // Number of segments to split NUM_LEDS into
+                        // when it matters, i.e. for chase effects
+#define SEGMENT_LENGTH 8
+
 CRGB leds[NUM_LEDS];
 
 // Lookup table mapping LED index to its position in the LED array.
@@ -80,24 +86,21 @@ void updateLEDs(LEDControl* control) {
     case mCHASE:        chase(control); break;
     case mCHASE_RGB:    chase_rgb(control); break;
   }
-
   FastLED.show();
 }
 
 void chase(LEDControl* control) {
-  unsigned long factor = NUM_LEDS / NUM_SEGMENTS;
   for(int i = 0; i < NUM_LEDS; i++) {  
     byte x = control->t;
-    x = x - ((i % factor) * NUM_SEGMENTS);
+    x = x - ((i % SEGMENT_LENGTH) * NUM_SEGMENTS);
     leds[i].setRGB(x - i, x - i, x - i);
   }
 }
 
 void chase_rgb(LEDControl* control) {
-  unsigned long factor = NUM_LEDS / NUM_SEGMENTS;
   for(int i = 0; i < NUM_LEDS; i++) {  
     byte x = control->t;
-    x = x - ((i % factor) * NUM_SEGMENTS);
+    x = x - ((i % SEGMENT_LENGTH) * NUM_SEGMENTS);
     CHSV hsvCol(x,255,255);
     leds[ledTable[i]] = hsvCol;
   }
