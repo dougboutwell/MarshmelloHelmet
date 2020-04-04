@@ -1,5 +1,4 @@
 #include <Arduino.h>
-#include "types.h"
 
 #include <noise.h>
 #include <bitswap.h>
@@ -28,6 +27,10 @@
 #include <FastLED.h>
 #include <power_mgt.h>
 
+#include "LED_Programs.h"
+#include "LED_Control.h"
+
+CRGB leds[NUM_LEDS];
 
 // Lookup table mapping LED index to its position in the LED array.
 // LEDs are daisy-chained so each row's direction is reversed
@@ -61,8 +64,27 @@ byte ledTable[NUM_LEDS] = {
   208, 209, 210, 211, 212, 213, 214, 215
   };
 
+void setupLEDs() {
+  FastLED.addLeds<NEOPIXEL, LED_DATA_PIN>(leds, NUM_LEDS);
 
-void chase(LEDControl* control, CRGB* leds) {
+  // Beyond this value, the LEDs shift REALLY hard toward red. They
+  // are brighter, but colors are super wacky.
+  FastLED.setMaxPowerInMilliWatts(9000);
+}
+
+void updateLEDs(LEDControl* control) {
+  switch (control->mode) {
+    case mPLAIN:        plain(control); break;
+    case mPUMP:         pump(control); break;
+    case mPUMP_REVERSE: pump_reverse(control); break;
+    case mCHASE:        chase(control); break;
+    case mCHASE_RGB:    chase_rgb(control); break;
+  }
+
+  FastLED.show();
+}
+
+void chase(LEDControl* control) {
   unsigned long factor = NUM_LEDS / NUM_SEGMENTS;
   for(int i = 0; i < NUM_LEDS; i++) {  
     byte x = control->t;
@@ -71,7 +93,7 @@ void chase(LEDControl* control, CRGB* leds) {
   }
 }
 
-void chase_rgb(LEDControl* control, CRGB* leds) {
+void chase_rgb(LEDControl* control) {
   unsigned long factor = NUM_LEDS / NUM_SEGMENTS;
   for(int i = 0; i < NUM_LEDS; i++) {  
     byte x = control->t;
@@ -81,20 +103,20 @@ void chase_rgb(LEDControl* control, CRGB* leds) {
   }
 }
 
-void pumpSingleRandom(LEDControl* control, CRGB* leds) {
+void pumpSingleRandom(LEDControl* control) {
     for(int i = 0; i < NUM_LEDS; i++) {  
 
     }
 }
 
 // Simply set all pixels to the RGB color
-void plain(LEDControl* control, CRGB* leds) {
+void plain(LEDControl* control) {
   for(int i = 0; i < NUM_LEDS; i++) {
     leds[i].setRGB(control->r, control->g, control->b);
   }
 }
 
-void pump(LEDControl* control, CRGB* leds) {
+void pump(LEDControl* control) {
   for(int i = 0; i < NUM_LEDS; i++) {
     byte x = control->t;    
     leds[i].setRGB(control->r, control->g, control->b);
@@ -102,11 +124,11 @@ void pump(LEDControl* control, CRGB* leds) {
   }
 }
 
-void pump_reverse(LEDControl* control, CRGB* leds) {
+void pump_reverse(LEDControl* control) {
   control->t = 255 - control->t;
   control->r = 255 - control->r;  
   control->g = 255 - control->g;
   control->b = 255 - control->b;
   
-  pump(control, leds);
+  pump(control);
 }

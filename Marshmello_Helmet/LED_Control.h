@@ -1,9 +1,12 @@
+/*
+ * Data types and routines for DMX -> i2c communication with the
+ * other Arduino
+ */
+
 #ifndef MARSHMELLO_TYPES
 #define MARSHMELLO_TYPES
 
 #include <Arduino.h>
-
-
 
 #define LED_DATA_PIN 9  // Pin we're using for WS2812 communication
 #define NUM_LEDS 216    // Total number of LEDs in the strip / array
@@ -29,5 +32,8 @@ typedef struct _LEDControl {
   // to true whenever the clock goes low.
   bool shouldResetTransitionPending;
 } LEDControl;
+
+void setupI2c();
+void getControlData(LEDControl* control);
 
 #endif
