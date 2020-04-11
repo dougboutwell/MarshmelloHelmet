@@ -87,7 +87,6 @@ void getControlDataSPI(LEDControl* control) {
   SPI.transfer(0);
   for (int i=0; i < dataSize; i++) {
     x[i] = SPI.transfer(i+1); // read this byte while requesting the next
-//    delay(1);
   }
   digitalWrite(SS, HIGH); // close it
 

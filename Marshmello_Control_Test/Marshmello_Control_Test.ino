@@ -1,6 +1,15 @@
-#include <Wire.h>
 #include <Smoothed.h>
 #include <SPI.h>
+#include <Adafruit_SSD1306.h>
+
+
+#define SCREEN_WIDTH 128 // OLED display width, in pixels
+#define SCREEN_HEIGHT 32 // OLED display height, in pixels
+
+// Declaration for an SSD1306 display connected to I2C (SDA, SCL pins)
+#define OLED_RESET     -1 // Reset pin # (or -1 if sharing Arduino reset pin)
+Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
+
 
 typedef struct _LEDControl {
   byte mode;
@@ -9,24 +18,6 @@ typedef struct _LEDControl {
   byte g;
   byte b;
 } LEDControl;
-
-//// indexes of LED Control memory layout
-//#define iMODE  0  // LED Progam Mode #
-//#define iCLOCK 1  // Clock - decreasing saw wave
-//#define iRED   2  // 2-4: RGB intensity of primary color
-//#define iGREEN 3  // 
-//#define iBLUE  4  //  
-//
-//byte mode = 0;  // Program mode
-//byte t = 0;     // Clock
-//byte r = 255;
-//byte g = 0;
-//byte b = 0;
-
-//void requestEvent() {
-//  byte message[5] = {mode, t, r, g, b};  
-//  Wire.write(message, 5);
-//}
 
 // Artificial Clock Generation
 inline byte lerp(unsigned long x, unsigned long x1) {
@@ -41,14 +32,29 @@ inline byte generateClock(byte bpm) {
 
 Smoothed <int> pot;
 
+LEDControl control;
+byte* data = (void*)&control;
+byte i = 0;
+
+// Interrupt service routine for SPI slave
+ISR (SPI_STC_vect) {
+  i = SPDR;
+  SPDR = data[i];
+}
+
+void setupDisplay() {
+    // SSD1306_SWITCHCAPVCC = generate display voltage from 3.3V internally
+  if(!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) { // Address 0x3C for 128x32
+    Serial.println(F("SSD1306 allocation failed"));
+    for(;;); // Don't proceed, loop forever
+  }
+
+  // Clear the buffer
+  display.clearDisplay();
+}
+
 void setup() {
-  pot.begin(SMOOTHED_AVERAGE, 30);
-
-  // i2c
-//  Wire.begin(1);                // join i2c bus with address #1
-//  Wire.onRequest(requestEvent); // register event
-
-  setup7Segment();
+//  pot.begin(SMOOTHED_AVERAGE, 30);
 
   Serial.begin(9600);
   pinMode(SS, INPUT_PULLUP);
@@ -56,22 +62,44 @@ void setup() {
   pinMode(SCK, INPUT);
   pinMode(MOSI, INPUT);
   SPCR |= _BV(SPE);
-  // turn on interrupts
-  SPCR |= _BV(SPIE);
+  SPCR |= _BV(SPIE); // turn on interrupts
   SPI.attachInterrupt();
+
+  setupDisplay();
 }
 
-LEDControl control;
-byte* data = (void*)&control;
-byte i = 0;
+void drawDisplay(LEDControl* control) {
+  display.clearDisplay();
 
-ISR (SPI_STC_vect) {
-  i = SPDR;
-//  if (i > 4) return;
-//  byte val = data[i];
-  SPDR = data[i];
-//  Serial.println(val);
+  display.setTextSize(1);             // Normal 1:1 pixel scale
+  display.setTextColor(SSD1306_WHITE);        // Draw white text
+  display.setCursor(0,0);             // Start at top-left corner
+  display.print(F("Clk"));
+
+  display.setCursor(32,0);             // Start at top-left corner
+  display.println(F("Red"));
+
+  display.setCursor(64,0);             // Start at top-left corner
+  display.println(F("Grn"));
+
+  display.setCursor(96,0);             // Start at top-left corner
+  display.println(F("Blu"));
+
+  display.setCursor(0,8);             // Start at top-left corner
+  display.println(control->t);
+
+  display.setCursor(32,8);             // Start at top-left corner
+  display.println(control->r);
+
+  display.setCursor(64,8);             // Start at top-left corner
+  display.println(control->g);
+
+  display.setCursor(96,8);             // Start at top-left corner
+  display.println(control->b);
+
+  display.display();
 }
+
 
 void loop() {
   // Scale to 0-256 range from 0-1024
@@ -86,10 +114,17 @@ void loop() {
   control.g = 0;
 //  control->r = 255;
 
-//  #ifdef DEBUG
-//  display7Segment(mode);  
-//  #endif
+  static unsigned long lastUpdate = 0;
+  static unsigned long minimumFrame = 1000/10;
+ 
+  unsigned long now = millis();
+  unsigned long nextUpdate = lastUpdate + minimumFrame;
+  long wait = nextUpdate - now;
 
-//  if (digitalRead (SS) == HIGH)
-//    i = 0;
+  if (wait < 0) { 
+    drawDisplay(&control);
+    lastUpdate = millis();
+  }
+
+//  Serial.println(control.t);
 }
