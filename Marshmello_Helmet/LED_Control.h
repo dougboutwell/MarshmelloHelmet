@@ -28,7 +28,7 @@ typedef struct _LEDControl {
   bool shouldResetTransitionPending;
 } LEDControl;
 
-void setupI2c();
+void setupControl();
 void getControlData(LEDControl* control);
 
 #endif

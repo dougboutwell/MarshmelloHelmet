@@ -2,12 +2,13 @@
 #include "LED_Programs.h"
 
 void setup() {
-  setupI2c();
+  setupControl();
   setupLEDs();
 }
 
 void loop() {  
   static LEDControl control;
   getControlData(&control);
-  updateLEDs(&control);
+//  updateLEDs(&control);
+  delay(100);
 }

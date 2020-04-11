@@ -79,17 +79,17 @@ void setupLEDs() {
 }
 
 void updateLEDs(LEDControl* control) {
-//  switch (control->mode) {
-//    case mPLAIN:          plain(control); break;
-//    case mPUMP:           pump(control); break;
-//    case mPUMP_REVERSE:   pump_reverse(control); break;
-//    case mCHASE:          chase_horizontal(control); break;
-//    case mCHASE_VERTICAL: chase_vertical(control); break;
-//    case mCHASE_RGB:      chase_rgb(control); break;
-//    case mRAINBOW_H:      rainbow_h(control); break;
-//  }
+  switch (control->mode) {
+    case mPLAIN:          plain(control); break;
+    case mPUMP:           pump(control); break;
+    case mPUMP_REVERSE:   pump_reverse(control); break;
+    case mCHASE:          chase_horizontal(control); break;
+    case mCHASE_VERTICAL: chase_vertical(control); break;
+    case mCHASE_RGB:      chase_rgb(control); break;
+    case mRAINBOW_H:      rainbow_h(control); break;
+  }
 
-  chase_vertical(control);
+//  chase_vertical(control);
 
   FastLED.show();
 }

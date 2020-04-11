@@ -5,11 +5,11 @@
 
 #define mPLAIN          0
 #define mPUMP           1
-#define mPUMP_REVERSE   2
+#define mPUMP_REVERSE   5
 #define mCHASE          3
-#define mCHASE_VERTICAL 5
-#define mCHASE_RGB      5
-#define mRAINBOW_H      6
+#define mCHASE_VERTICAL 4
+#define mCHASE_RGB      2
+#define mRAINBOW_H      6 
 
 void setupLEDs();
 
