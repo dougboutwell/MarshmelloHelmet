@@ -9,6 +9,5 @@ void setup() {
 void loop() {  
   static LEDControl control;
   getControlData(&control);
-//  updateLEDs(&control);
-  delay(100);
+  updateLEDs(&control);
 }

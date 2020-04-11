@@ -35,7 +35,7 @@ void setupI2c() {
 void setupSPI() {
   SPI.begin();
   SPI.setClockDivider(SPI_CLOCK_DIV128);
-  digitalWrite(SS,LOW);
+  digitalWrite(SS,HIGH);
 }
 
 void getControlData(LEDControl* control) {
@@ -64,43 +64,36 @@ void getControlDataI2c(LEDControl* control) {
   control->g = data[iGREEN];
   control->b = data[iBLUE];
 
-  if (data[iCLOCK] < 64) { 
-    // Whenever the clock goes low, we're eligible to transition state on the
-    // next clock high
-    control -> shouldResetTransitionPending = true;
-  } else if (data[iCLOCK] > 192 && control->shouldResetTransitionPending) {
-    control->isTransitionPending = true;
-    control->shouldResetTransitionPending = false;
-  }
+//  if (data[iCLOCK] < 64) { 
+//    // Whenever the clock goes low, we're eligible to transition state on the
+//    // next clock high
+//    control -> shouldResetTransitionPending = true;
+//  } else if (data[iCLOCK] > 192 && control->shouldResetTransitionPending) {
+//    control->isTransitionPending = true;
+//    control->shouldResetTransitionPending = false;
+//  }
 }
 
 void getControlDataSPI(LEDControl* control) {
-//  static int dataSize = sizeof(LEDControl);
+  static int dataSize = 5;
 
   byte* x = (byte*)control;
 
-  char hello[] = "hello";
-  int dataSize = 6;
-  byte val;
-
-  char buf[100];
   digitalWrite(SS, LOW);
-//  control->mode = SPI.transfer(0);
-  for (int i=0; i <= dataSize; i++) {
-    val = SPI.transfer(i);
-    Serial.print(hello[i]);
-    if (i == 0) continue;
-    buf[i-1] = val;
+  // SPI works synchronously, so when we transfer a value to the slave, we
+  // don't get the actual value from the slave until the next loop iteration,
+  // hence the weird loop structure here where we're writing one behind the
+  // current index. First transfer is to request byte 0
+  SPI.transfer(0);
+  for (int i=0; i < dataSize; i++) {
+    x[i] = SPI.transfer(i+1); // read this byte while requesting the next
+//    delay(1);
   }
-  Serial.print("\n");
+  digitalWrite(SS, HIGH); // close it
 
-//  static byte i = 0;
-//  SPI.transfer(i++);
-  digitalWrite(SS, HIGH);
+  control->mode = 3;
 
-
+  static char buf[200];
+  sprintf(buf, "mode: %3d, clock: %3d, r: %3d, g: %3d, b: %3d", control->mode, control->t, control->r, control->g, control->b);
   Serial.println(buf);
-
-//  Serial.println(i);
-//  Serial.println(sprintf("mode: %3d, clock: %3d, r: %3d, g: %3d, b: %3d", control->mode, control->t, control->r, control->g, control->b));
 }

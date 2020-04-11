@@ -18,14 +18,14 @@ typedef struct _LEDControl {
   byte g;
   byte b;
   
-  // Is a state transition pending? This should be set to true when
-  // the clock goes high and shouldReset is true. After a state
-  // transition has occurred, LED code should set this to false.
-  bool isTransitionPending;
-
-  // Should we set shouldTransition on the next clock high? Set this
-  // to true whenever the clock goes low.
-  bool shouldResetTransitionPending;
+//  // Is a state transition pending? This should be set to true when
+//  // the clock goes high and shouldReset is true. After a state
+//  // transition has occurred, LED code should set this to false.
+//  bool isTransitionPending;
+//
+//  // Should we set shouldTransition on the next clock high? Set this
+//  // to true whenever the clock goes low.
+//  bool shouldResetTransitionPending;
 } LEDControl;
 
 void setupControl();
